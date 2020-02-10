@@ -1,0 +1,17 @@
+#ifndef WLR_CONFIG_H
+#define WLR_CONFIG_H
+
+#define WLR_HAS_LIBCAP 0
+
+#define WLR_HAS_SYSTEMD 0
+#define WLR_HAS_ELOGIND 0
+
+#define WLR_HAS_X11_BACKEND 0
+#define WLR_HAS_RDP_BACKEND 0
+
+#define WLR_HAS_XWAYLAND 0
+
+#define WLR_HAS_XCB_ERRORS 0
+#define WLR_HAS_XCB_ICCCM 0
+
+#endif
