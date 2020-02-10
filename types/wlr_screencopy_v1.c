@@ -397,8 +397,8 @@ static void capture_output(struct wl_client *wl_client,
 		goto error;
 	}
 
-	struct wlr_renderer *renderer = wlr_backend_get_renderer(output->backend);
-	assert(renderer);
+	//struct wlr_renderer *renderer = wlr_backend_get_renderer(output->backend);
+	//assert(renderer);
 
 	if (!wlr_output_preferred_read_format(frame->output, &frame->format)) {
 		wlr_log(WLR_ERROR,

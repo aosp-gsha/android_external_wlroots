@@ -5,7 +5,7 @@
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_surface.h>
 #include <wlr/backend.h>
-#include "presentation-time-protocol.h"
+#include "presentation-time-server-protocol.h"
 #include "util/signal.h"
 
 #define PRESENTATION_VERSION 1

@@ -7,7 +7,7 @@
 #include <wlr/types/wlr_relative_pointer_v1.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/util/log.h>
-#include "relative-pointer-unstable-v1-protocol.h"
+#include "relative-pointer-unstable-v1-server-protocol.h"
 
 #define RELATIVE_POINTER_MANAGER_VERSION 1
 

@@ -8,8 +8,9 @@
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
 #include <wlr/util/log.h>
-#include "linux-dmabuf-unstable-v1-protocol.h"
+#include "linux-dmabuf-unstable-v1-server-protocol.h"
 #include "util/signal.h"
+#include "stub/fourcc.h"
 
 #define LINUX_DMABUF_VERSION 3
 
@@ -207,7 +208,7 @@ static void params_create_common(struct wl_client *client,
 			// Skip checks if kernel does no support seek on buffer
 			continue;
 		}
-		if (buffer->attributes.offset[i] > size) {
+		if ((long)buffer->attributes.offset[i] > size) {
 			wl_resource_post_error(params_resource,
 				ZWP_LINUX_BUFFER_PARAMS_V1_ERROR_OUT_OF_BOUNDS,
 				"invalid offset %i for plane %d",
@@ -215,7 +216,7 @@ static void params_create_common(struct wl_client *client,
 			goto err_out;
 		}
 
-		if (buffer->attributes.offset[i] + buffer->attributes.stride[i] > size ||
+		if ((long)(buffer->attributes.offset[i] + buffer->attributes.stride[i]) > size ||
 				buffer->attributes.stride[i] == 0) {
 			wl_resource_post_error(params_resource,
 				ZWP_LINUX_BUFFER_PARAMS_V1_ERROR_OUT_OF_BOUNDS,
@@ -225,8 +226,8 @@ static void params_create_common(struct wl_client *client,
 		}
 
 		// planes > 0 might be subsampled according to fourcc format
-		if (i == 0 && buffer->attributes.offset[i] +
-				buffer->attributes.stride[i] * height > size) {
+		if (i == 0 && (long)(buffer->attributes.offset[i] +
+				buffer->attributes.stride[i] * height) > size) {
 			wl_resource_post_error(params_resource,
 				ZWP_LINUX_BUFFER_PARAMS_V1_ERROR_OUT_OF_BOUNDS,
 				"invalid buffer stride or height for plane %d", i);

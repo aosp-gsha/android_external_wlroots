@@ -6,7 +6,7 @@
 #include <wlr/types/wlr_idle_inhibit_v1.h>
 #include <wlr/types/wlr_surface.h>
 #include <wlr/util/log.h>
-#include "idle-inhibit-unstable-v1-protocol.h"
+#include "idle-inhibit-unstable-v1-server-protocol.h"
 
 static const struct zwp_idle_inhibit_manager_v1_interface idle_inhibit_impl;
 
