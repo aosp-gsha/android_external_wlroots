@@ -11,9 +11,8 @@
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_matrix.h>
 #include <wlr/util/log.h>
+#include "glapi.h"
 #include "render/gles2.h"
-
-struct wlr_gles2_procs gles2_procs = {0};
 
 static const struct wlr_renderer_impl renderer_impl;
 
@@ -120,17 +119,22 @@ static bool gles2_render_texture_with_matrix(struct wlr_renderer *wlr_renderer,
 		gles2_get_texture(wlr_texture);
 
 	struct wlr_gles2_tex_shader *shader = NULL;
+	GLenum target = 0;
 
-	switch (texture->target) {
-	case GL_TEXTURE_2D:
+	switch (texture->type) {
+	case WLR_GLES2_TEXTURE_GLTEX:
+	case WLR_GLES2_TEXTURE_WL_DRM_GL:
 		if (texture->has_alpha) {
 			shader = &renderer->shaders.tex_rgba;
 		} else {
 			shader = &renderer->shaders.tex_rgbx;
 		}
+		target = GL_TEXTURE_2D;
 		break;
-	case GL_TEXTURE_EXTERNAL_OES:
+	case WLR_GLES2_TEXTURE_WL_DRM_EXT:
+	case WLR_GLES2_TEXTURE_DMABUF:
 		shader = &renderer->shaders.tex_ext;
+		target = GL_TEXTURE_EXTERNAL_OES;
 
 		if (!renderer->exts.egl_image_external_oes) {
 			wlr_log(WLR_ERROR, "Failed to render texture: "
@@ -138,8 +142,6 @@ static bool gles2_render_texture_with_matrix(struct wlr_renderer *wlr_renderer,
 			return false;
 		}
 		break;
-	default:
-		abort();
 	}
 
 	// OpenGL ES 2 requires the glUniformMatrix3fv transpose parameter to be set
@@ -149,10 +151,13 @@ static bool gles2_render_texture_with_matrix(struct wlr_renderer *wlr_renderer,
 
 	PUSH_GLES2_DEBUG;
 
+	GLuint tex_id = texture->type == WLR_GLES2_TEXTURE_GLTEX ?
+		texture->gl_tex : texture->image_tex;
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(texture->target, texture->tex);
+	glBindTexture(target, tex_id);
 
-	glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glUseProgram(shader->program);
 
@@ -162,8 +167,6 @@ static bool gles2_render_texture_with_matrix(struct wlr_renderer *wlr_renderer,
 	glUniform1f(shader->alpha, alpha);
 
 	draw_quad();
-
-	glBindTexture(texture->target, 0);
 
 	POP_GLES2_DEBUG;
 	return true;
@@ -222,13 +225,13 @@ static bool gles2_resource_is_wl_drm_buffer(struct wlr_renderer *wlr_renderer,
 		struct wl_resource *resource) {
 	struct wlr_gles2_renderer *renderer = gles2_get_renderer(wlr_renderer);
 
-	if (!renderer->egl->exts.bind_wayland_display_wl) {
+	if (!eglQueryWaylandBufferWL) {
 		return false;
 	}
 
 	EGLint fmt;
-	return renderer->egl->procs.eglQueryWaylandBufferWL(renderer->egl->display,
-		resource, EGL_TEXTURE_FORMAT, &fmt);
+	return eglQueryWaylandBufferWL(renderer->egl->display, resource,
+		EGL_TEXTURE_FORMAT, &fmt);
 }
 
 static void gles2_wl_drm_buffer_get_size(struct wlr_renderer *wlr_renderer,
@@ -236,14 +239,12 @@ static void gles2_wl_drm_buffer_get_size(struct wlr_renderer *wlr_renderer,
 	struct wlr_gles2_renderer *renderer =
 		gles2_get_renderer(wlr_renderer);
 
-	if (!renderer->egl->exts.bind_wayland_display_wl) {
+	if (!eglQueryWaylandBufferWL) {
 		return;
 	}
 
-	renderer->egl->procs.eglQueryWaylandBufferWL(renderer->egl->display,
-		buffer, EGL_WIDTH, width);
-	renderer->egl->procs.eglQueryWaylandBufferWL(renderer->egl->display,
-		buffer, EGL_HEIGHT, height);
+	eglQueryWaylandBufferWL(renderer->egl->display, buffer, EGL_WIDTH, width);
+	eglQueryWaylandBufferWL(renderer->egl->display, buffer, EGL_HEIGHT, height);
 }
 
 static const struct wlr_drm_format_set *gles2_get_dmabuf_formats(
@@ -360,12 +361,6 @@ static void gles2_init_wl_display(struct wlr_renderer *wlr_renderer,
 	}
 }
 
-struct wlr_egl *wlr_gles2_renderer_get_egl(struct wlr_renderer *wlr_renderer) {
-	struct wlr_gles2_renderer *renderer =
-		gles2_get_renderer(wlr_renderer);
-	return renderer->egl;
-}
-
 static void gles2_destroy(struct wlr_renderer *wlr_renderer) {
 	struct wlr_gles2_renderer *renderer = gles2_get_renderer(wlr_renderer);
 
@@ -381,7 +376,7 @@ static void gles2_destroy(struct wlr_renderer *wlr_renderer) {
 
 	if (renderer->exts.debug_khr) {
 		glDisable(GL_DEBUG_OUTPUT_KHR);
-		gles2_procs.glDebugMessageCallbackKHR(NULL, NULL);
+		glDebugMessageCallbackKHR(NULL, NULL);
 	}
 
 	free(renderer);
@@ -410,19 +405,19 @@ static const struct wlr_renderer_impl renderer_impl = {
 };
 
 void push_gles2_marker(const char *file, const char *func) {
-	if (!gles2_procs.glPushDebugGroupKHR) {
+	if (!glPushDebugGroupKHR) {
 		return;
 	}
 
 	int len = snprintf(NULL, 0, "%s:%s", file, func) + 1;
 	char str[len];
 	snprintf(str, len, "%s:%s", file, func);
-	gles2_procs.glPushDebugGroupKHR(GL_DEBUG_SOURCE_APPLICATION_KHR, 1, -1, str);
+	glPushDebugGroupKHR(GL_DEBUG_SOURCE_APPLICATION_KHR, 1, -1, str);
 }
 
 void pop_gles2_marker(void) {
-	if (gles2_procs.glPopDebugGroupKHR) {
-		gles2_procs.glPopDebugGroupKHR();
+	if (glPopDebugGroupKHR) {
+		glPopDebugGroupKHR();
 	}
 }
 
@@ -521,15 +516,6 @@ static bool check_gl_ext(const char *exts, const char *ext) {
 	return false;
 }
 
-static void load_gl_proc(void *proc_ptr, const char *name) {
-	void *proc = (void *)eglGetProcAddress(name);
-	if (proc == NULL) {
-		wlr_log(WLR_ERROR, "eglGetProcAddress(%s) failed", name);
-		abort();
-	}
-	*(void **)proc_ptr = proc;
-}
-
 extern const GLchar quad_vertex_src[];
 extern const GLchar quad_fragment_src[];
 extern const GLchar ellipse_fragment_src[];
@@ -539,9 +525,7 @@ extern const GLchar tex_fragment_src_rgbx[];
 extern const GLchar tex_fragment_src_external[];
 
 struct wlr_renderer *wlr_gles2_renderer_create(struct wlr_egl *egl) {
-	const char *exts_str = (const char *)glGetString(GL_EXTENSIONS);
-	if (exts_str == NULL) {
-		wlr_log(WLR_ERROR, "Failed to get GL_EXTENSIONS");
+	if (!load_glapi()) {
 		return NULL;
 	}
 
@@ -558,44 +542,37 @@ struct wlr_renderer *wlr_gles2_renderer_create(struct wlr_egl *egl) {
 		return NULL;
 	}
 
+	renderer->exts_str = (const char *)glGetString(GL_EXTENSIONS);
 	wlr_log(WLR_INFO, "Using %s", glGetString(GL_VERSION));
 	wlr_log(WLR_INFO, "GL vendor: %s", glGetString(GL_VENDOR));
 	wlr_log(WLR_INFO, "GL renderer: %s", glGetString(GL_RENDERER));
-	wlr_log(WLR_INFO, "Supported GLES2 extensions: %s", exts_str);
+	wlr_log(WLR_INFO, "Supported GLES2 extensions: %s", renderer->exts_str);
 
-	if (!check_gl_ext(exts_str, "GL_EXT_texture_format_BGRA8888")) {
+	if (!check_gl_ext(renderer->exts_str, "GL_EXT_texture_format_BGRA8888")) {
 		wlr_log(WLR_ERROR, "BGRA8888 format not supported by GLES2");
 		free(renderer);
 		return NULL;
 	}
 
 	renderer->exts.read_format_bgra_ext =
-		check_gl_ext(exts_str, "GL_EXT_read_format_bgra");
-
-	if (check_gl_ext(exts_str, "GL_KHR_debug")) {
-		renderer->exts.debug_khr = true;
-		load_gl_proc(&gles2_procs.glDebugMessageCallbackKHR,
-			"glDebugMessageCallbackKHR");
-		load_gl_proc(&gles2_procs.glDebugMessageControlKHR,
-			"glDebugMessageControlKHR");
-	}
-
-	if (check_gl_ext(exts_str, "GL_OES_EGL_image_external")) {
-		renderer->exts.egl_image_external_oes = true;
-		load_gl_proc(&gles2_procs.glEGLImageTargetTexture2DOES,
-			"glEGLImageTargetTexture2DOES");
-	}
+		check_gl_ext(renderer->exts_str, "GL_EXT_read_format_bgra");
+	renderer->exts.debug_khr =
+		check_gl_ext(renderer->exts_str, "GL_KHR_debug") &&
+		glDebugMessageCallbackKHR && glDebugMessageControlKHR;
+	renderer->exts.egl_image_external_oes =
+		check_gl_ext(renderer->exts_str, "GL_OES_EGL_image_external") &&
+		glEGLImageTargetTexture2DOES;
 
 	if (renderer->exts.debug_khr) {
 		glEnable(GL_DEBUG_OUTPUT_KHR);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_KHR);
-		gles2_procs.glDebugMessageCallbackKHR(gles2_log, NULL);
+		glDebugMessageCallbackKHR(gles2_log, NULL);
 
 		// Silence unwanted message types
-		gles2_procs.glDebugMessageControlKHR(GL_DONT_CARE,
-			GL_DEBUG_TYPE_POP_GROUP_KHR, GL_DONT_CARE, 0, NULL, GL_FALSE);
-		gles2_procs.glDebugMessageControlKHR(GL_DONT_CARE,
-			GL_DEBUG_TYPE_PUSH_GROUP_KHR, GL_DONT_CARE, 0, NULL, GL_FALSE);
+		glDebugMessageControlKHR(GL_DONT_CARE, GL_DEBUG_TYPE_POP_GROUP_KHR,
+			GL_DONT_CARE, 0, NULL, GL_FALSE);
+		glDebugMessageControlKHR(GL_DONT_CARE, GL_DEBUG_TYPE_PUSH_GROUP_KHR,
+			GL_DONT_CARE, 0, NULL, GL_FALSE);
 	}
 
 	PUSH_GLES2_DEBUG;
@@ -664,7 +641,7 @@ error:
 
 	if (renderer->exts.debug_khr) {
 		glDisable(GL_DEBUG_OUTPUT_KHR);
-		gles2_procs.glDebugMessageCallbackKHR(NULL, NULL);
+		glDebugMessageCallbackKHR(NULL, NULL);
 	}
 
 	free(renderer);

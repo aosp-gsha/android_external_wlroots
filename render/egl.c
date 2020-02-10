@@ -5,6 +5,8 @@
 #include <wlr/render/egl.h>
 #include <wlr/util/log.h>
 #include <wlr/util/region.h>
+#include <stub/fourcc.h>
+#include "glapi.h"
 
 static bool egl_get_config(EGLDisplay disp, EGLint *attribs, EGLConfig *out,
 		EGLint visual_id) {

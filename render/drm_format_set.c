@@ -5,6 +5,7 @@
 #include <string.h>
 #include <wlr/render/drm_format_set.h>
 #include <wlr/util/log.h>
+#include <stub/fourcc.h>
 
 void wlr_drm_format_set_finish(struct wlr_drm_format_set *set) {
 	for (size_t i = 0; i < set->len; ++i) {
