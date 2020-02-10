@@ -3,7 +3,7 @@
 
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_xdg_shell_v6.h>
-#include "xdg-shell-unstable-v6-protocol.h"
+#include "xdg-shell-unstable-v6-server-protocol.h"
 
 struct wlr_xdg_positioner_v6_resource {
 	struct wl_resource *resource;

@@ -51,9 +51,9 @@ struct wlr_xdg_positioner {
 	struct wl_resource *resource;
 
 	struct wlr_box anchor_rect;
-	enum xdg_positioner_anchor anchor;
-	enum xdg_positioner_gravity gravity;
-	enum xdg_positioner_constraint_adjustment constraint_adjustment;
+	//enum xdg_positioner_anchor anchor;
+	//enum xdg_positioner_gravity gravity;
+	//enum xdg_positioner_constraint_adjustment constraint_adjustment;
 
 	struct {
 		int32_t width, height;

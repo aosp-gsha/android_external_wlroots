@@ -145,6 +145,14 @@
       <arg name="anchor" type="uint"/>
     </event>
 
+    <enum name="change_cause">
+      <description summary="text change reason">
+        Reason for the change of surrounding text or cursor posision.
+      </description>
+      <entry name="input_method" value="0" summary="input method caused the change"/>
+      <entry name="other" value="1" summary="something else than the input method caused the change"/>
+    </enum>
+
     <event name="text_change_cause">
       <description summary="indicates the cause of surrounding text change">
         Tells the input method why the text surrounding the cursor changed.
@@ -163,7 +171,7 @@
 
         The initial value of cause is input_method.
       </description>
-      <arg name="cause" type="uint" enum="zwp_text_input_v3.change_cause"/>
+      <arg name="cause" type="uint" enum="change_cause"/>
     </event>
 
     <event name="content_type">
@@ -177,8 +185,8 @@
         The initial value for hint is none, and the initial value for purpose
         is normal.
       </description>
-      <arg name="hint" type="uint" enum="zwp_text_input_v3.content_hint"/>
-      <arg name="purpose" type="uint" enum="zwp_text_input_v3.content_purpose"/>
+      <arg name="hint" type="uint"/>
+      <arg name="purpose" type="uint"/>
     </event>
 
     <event name="done">
@@ -404,8 +412,7 @@
         This event provides a file descriptor to the client which can be
         memory-mapped to provide a keyboard mapping description.
       </description>
-      <arg name="format" type="uint" enum="wl_keyboard.keymap_format"
-        summary="keymap format"/>
+      <arg name="format" type="uint" summary="keymap format"/>
       <arg name="fd" type="fd" summary="keymap file descriptor"/>
       <arg name="size" type="uint" summary="keymap size, in bytes"/>
     </event>
@@ -419,8 +426,7 @@
       <arg name="serial" type="uint" summary="serial number of the key event"/>
       <arg name="time" type="uint" summary="timestamp with millisecond granularity"/>
       <arg name="key" type="uint" summary="key that produced the event"/>
-      <arg name="state" type="uint" enum="wl_keyboard.key_state"
-        summary="physical state of the key"/>
+      <arg name="state" type="uint" summary="physical state of the key"/>
     </event>
 
     <event name="modifiers">

@@ -239,7 +239,7 @@
         This event describes the transformation currently applied to the head.
         It is only sent if the output is enabled.
       </description>
-      <arg name="transform" type="int" enum="wl_output.transform"/>
+      <arg name="transform" type="int"/>
     </event>
 
     <event name="scale">
@@ -470,7 +470,7 @@
       <description summary="set the transform">
         This request sets the head's transform.
       </description>
-      <arg name="transform" type="int" enum="wl_output.transform"/>
+      <arg name="transform" type="int"/>
     </request>
 
     <request name="set_scale">

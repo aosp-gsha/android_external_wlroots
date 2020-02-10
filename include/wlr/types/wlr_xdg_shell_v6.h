@@ -17,7 +17,7 @@
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_box.h>
 #include <wlr/types/wlr_seat.h>
-#include "xdg-shell-unstable-v6-protocol.h"
+#include "xdg-shell-unstable-v6-server-protocol.h"
 
 /**
  * An interface enabling clients to turn their wl_surfaces into windows in a

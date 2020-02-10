@@ -14,7 +14,7 @@
 #include <pixman.h>
 #include <wlr/types/wlr_box.h>
 #include <wlr/types/wlr_seat.h>
-#include "pointer-constraints-unstable-v1-protocol.h"
+#include "pointer-constraints-unstable-v1-server-protocol.h"
 
 struct wlr_seat;
 
