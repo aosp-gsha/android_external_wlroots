@@ -1,0 +1,51 @@
+filegroup {
+	name: "xdg-shell_protocol",
+	srcs: [
+		"xdg-shell/xdg-shell.xml",
+	],
+}
+
+// Generate protocol header files
+genrule {
+	name: "xdg-shell_protocol_source",
+	cmd: "$(location wayland_scanner) code < $(in) > $(out)",
+	srcs: [":xdg-shell_protocol"],
+	out: ["xdg-shell-protocol.c"],
+	tools: ["wayland_scanner"],
+}
+// Generate protocol header files
+genrule {
+	name: "xdg-shell_protocol_header",
+	cmd: "$(location wayland_scanner) server-header < $(in) > $(out)",
+	srcs: [":xdg-shell_protocol"],
+	out: ["xdg-shell-protocol.h"],
+	tools: ["wayland_scanner"],
+}
+
+// Build tinywl
+cc_library_static {
+	name: "tinywl",
+	vendor_available: true,
+	defaults: ["wlroots_defaults"],
+	header_libs: [ "wlr_inc", "wayland_inc", "pixman_inc", "xkbcommon_inc"],
+	srcs: [
+		"tinywl.c", 
+	],
+	generated_sources: ["xdg-shell_protocol_source"],
+	generated_headers: [
+		"xdg-shell_protocol_header",
+	],
+	export_generated_headers: [
+		"xdg-shell_protocol_header",
+	],
+}
+
+cc_library_headers {
+         name: "tinywl_inc",
+         generated_headers: [
+		"xdg-shell_protocol_header",
+         ],
+	 export_generated_headers: [
+		"xdg-shell_protocol_header",
+	],
+}

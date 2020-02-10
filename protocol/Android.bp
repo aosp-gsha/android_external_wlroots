@@ -1,0 +1,108 @@
+// Build and use the "wayland_protocol_codegen" extension.
+bootstrap_go_package {
+    name: "soong-wlroots-protocol-codegen",
+    pkgPath: "android/soong/external/wlroots-master/protocol",
+    deps: [
+        "blueprint",
+        "blueprint-proptools",
+        "soong-android",
+        "soong-genrule",
+    ],
+    srcs: [
+        "wlroots_protocol_codegen.go",
+    ],
+    pluginFor: ["soong_build"],
+}
+
+filegroup {
+    name: "wlr_protocols",
+    srcs: [
+ 		"gtk-primary-selection.xml",
+		"idle.xml",
+		"input-method-unstable-v2.xml",
+		"server-decoration.xml",
+		"virtual-keyboard-unstable-v1.xml",
+		"wlr-data-control-unstable-v1.xml",
+		"wlr-export-dmabuf-unstable-v1.xml",
+		"wlr-foreign-toplevel-management-unstable-v1.xml",
+		"wlr-gamma-control-unstable-v1.xml",
+		"wlr-input-inhibitor-unstable-v1.xml",
+		"wlr-layer-shell-unstable-v1.xml",
+		"wlr-output-management-unstable-v1.xml",
+		"wlr-screencopy-unstable-v1.xml",
+    ],
+}
+
+filegroup {
+    name: "wlr_client_protocols",
+    srcs: [
+ 		"idle.xml",
+		"input-method-unstable-v2.xml",
+		"wlr-export-dmabuf-unstable-v1.xml",
+		"wlr-foreign-toplevel-management-unstable-v1.xml",
+		"wlr-gamma-control-unstable-v1.xml",
+		"wlr-input-inhibitor-unstable-v1.xml",
+		"wlr-layer-shell-unstable-v1.xml",
+		"wlr-screencopy-unstable-v1.xml",
+    ],
+}
+
+
+// Generate protocol source files 
+wlroots_protocol_codegen {
+    name: "wlr_protocol_sources",
+    cmd:"$(location) code  < $(in) > $(out)",
+    suffix: "-protocol.c",
+    srcs: [":wlr_protocols"],
+    tools: ["wayland_scanner"],
+}
+
+// Generate protocol header files used by the server
+wlroots_protocol_codegen {
+    name: "wlr_protocol_headers",
+    cmd: "$(location) server-header < $(in) > $(out)",
+    suffix: "-protocol.h",
+    srcs: [":wlr_protocols"],
+    tools: ["wayland_scanner"],
+}
+
+// Generate protocol header files used by the client
+wlroots_protocol_codegen {
+    name: "wlr_client_protocol_headers",
+    cmd: "$(location) client-header < $(in) > $(out)",
+    suffix: "-client-protocol.h",
+    srcs: [":wlr_client_protocols"],
+    tools: ["wayland_scanner"],
+}
+
+
+// Build wlr protocol files
+cc_library_static {
+	name: "wl_protos",
+	vendor_available: true,
+	defaults: ["wlroots_defaults"],
+	generated_sources: ["wlr_protocol_sources"],
+	generated_headers: [
+		"wlr_protocol_headers",
+		"wlr_client_protocol_headers"
+	],
+	header_libs: ["wayland_inc"],
+	srcs: [],
+	static_libs: [],
+	export_generated_headers: [
+		"wlr_protocol_headers",
+		"wlr_client_protocol_headers"
+	],
+}
+
+cc_library_headers {
+	name: "wlproto_inc",
+	generated_headers: [
+		"wlr_protocol_headers",
+		"wlr_client_protocol_headers",
+	],
+	export_generated_headers: [
+		"wlr_protocol_headers",
+		"wlr_client_protocol_headers",
+	]
+}

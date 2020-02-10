@@ -1,0 +1,56 @@
+genrule {
+	name: "glapi_source",
+	cmd: "$(location) $(in) $(genDir)",
+//	cmd: "$(location) -o $(genDir) < $(in) > $(out)",
+	tool_files: ["glgen.sh"],
+	srcs: ["glapi.txt"],
+	out: ["glapi.c"],
+}
+
+genrule {
+	name: "glapi_header",
+	cmd: "$(location) $(in) $(genDir)",
+//	cmd: "$(location) -o $(genDir) < $(in) > $(out)",
+	tool_files: ["glgen.sh"],
+	srcs: ["glapi.txt"],
+	out: ["glapi.h"],
+}
+
+cc_library_static {
+	name: "wlr_render",
+	defaults: ["wlroots_defaults"],
+	generated_sources: ["glapi_source"],
+	generated_headers: ["glapi_header"],
+	srcs: [
+		"dmabuf.c",
+		"egl.c",
+		"drm_format_set.c",
+		"gles2/pixel_format.c",
+		"gles2/renderer.c",
+		"gles2/shaders.c",
+		"gles2/texture.c",
+		"gles2/util.c",
+		"wlr_renderer.c",
+		"wlr_texture.c",
+	],
+	header_libs: ["wlr_inc", "wayland_inc", "pixman_inc", "libdrm_inc"],
+	shared_libs: [
+		"libdrm",
+		"libEGL",
+		"libGLESv2",
+		"libGLESv3",
+	],
+	 export_generated_headers: [
+		"glapi_header",
+	],
+}
+
+cc_library_headers {
+         name: "wlrender_inc",
+	 generated_headers: [
+		"glapi_header",
+         ],
+	 export_generated_headers: [
+		"glapi_header",
+	],
+}

@@ -1,0 +1,14 @@
+cc_library_static {
+	name: "wlr_xcursor",
+	defaults: ["wlroots_defaults"],
+	header_libs: ["wlr_inc"],
+	shared_libs: [
+//		"wayland_server",
+//		"pixman",
+//		"rt",
+	],
+	srcs: [
+		"wlr_xcursor.c",
+		"xcursor.c",
+	],
+}

@@ -1,0 +1,16 @@
+cc_library_static {
+	name: "wlr_util",
+	defaults: ["wlroots_defaults"],
+	shared_libs: [
+	],
+	static_libs: [
+	],
+	header_libs: [ "wlr_inc", "wayland_inc", "pixman_inc"],
+	srcs: [
+ 		"array.c",
+ 		"log.c",
+ 		"region.c",
+ 		"shm.c",
+ 		"signal.c",
+	]
+}

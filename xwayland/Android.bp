@@ -1,0 +1,24 @@
+cc_library_static {
+	name: "wlr_xwayland",
+	defaults: ["wlroots_defaults"],
+	header_libs: [
+		"wlr_inc", 
+		"xkbcommon_inc",
+		"wayland_inc",
+		"pixman_inc",
+		],
+	shared_libs: [
+//		"wayland_server",
+//		"pixman",
+//		"rt",
+	],
+	srcs: [
+		"selection/dnd.c",
+		"selection/incoming.c",
+		"selection/outgoing.c",
+		"selection/selection.c",
+		"sockets.c",
+		"xwayland.c",
+		"xwm.c",
+	],
+}

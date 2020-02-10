@@ -1,0 +1,2 @@
+#define DRM_CAP_CRTC_IN_VBLANK_EVENT	0x12
+
