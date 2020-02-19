@@ -28,6 +28,9 @@
 #include "backend/drm/iface.h"
 #include "backend/drm/util.h"
 #include "util/signal.h"
+#include <stub/fourcc.h>
+#include <stub/mode.h>
+#include <stub/drm.h>
 
 bool check_drm_features(struct wlr_drm_backend *drm) {
 	uint64_t cap;

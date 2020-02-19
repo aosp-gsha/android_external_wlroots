@@ -11,6 +11,8 @@
 #include <wlr/types/wlr_matrix.h>
 #include <wlr/util/log.h>
 #include "backend/drm/drm.h"
+#include <stub/fourcc.h>
+#include <stub/gbm.h>
 
 bool init_drm_renderer(struct wlr_drm_backend *drm,
 		struct wlr_drm_renderer *renderer, wlr_renderer_create_func_t create_renderer_func) {

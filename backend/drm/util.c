@@ -6,7 +6,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <wlr/util/log.h>
+#include <stub/fourcc.h>
 #include "backend/drm/util.h"
+#include <stub/gbm.h>
 
 int32_t calculate_refresh_rate(const drmModeModeInfo *mode) {
 	int32_t refresh = (mode->clock * 1000000LL / mode->htotal +
