@@ -14,7 +14,7 @@
 #include <wlr/config.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_seat.h>
-#include <xcb/xcb.h>
+//#include <xcb/xcb.h>
 
 struct wlr_xwm;
 struct wlr_xwayland_cursor;

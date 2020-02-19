@@ -32,6 +32,8 @@ struct wlr_egl {
 	EGLConfig config;
 	EGLContext context;
 
+	const char *exts_str;
+
 	struct {
 		bool bind_wayland_display_wl;
 		bool buffer_age_ext;

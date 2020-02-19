@@ -339,7 +339,7 @@ bool wlr_egl_bind_display(struct wlr_egl *egl, struct wl_display *local_display)
 	return false;
 }
 
-bool wlr_egl_destroy_image(struct wlr_egl *egl, EGLImage image) {
+bool wlr_egl_destroy_image(struct wlr_egl *egl, EGLImageKHR image) {
 	if (!egl->exts.image_base_khr) {
 		return false;
 	}

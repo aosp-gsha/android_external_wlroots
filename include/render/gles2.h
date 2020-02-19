@@ -43,6 +43,7 @@ struct wlr_gles2_renderer {
 	struct wlr_renderer wlr_renderer;
 
 	struct wlr_egl *egl;
+	const char *exts_str;
 
 	struct {
 		bool read_format_bgra_ext;
@@ -69,15 +70,30 @@ struct wlr_gles2_renderer {
 	uint32_t viewport_width, viewport_height;
 };
 
+enum wlr_gles2_texture_type {
+	WLR_GLES2_TEXTURE_GLTEX,
+	WLR_GLES2_TEXTURE_WL_DRM_GL,
+	WLR_GLES2_TEXTURE_WL_DRM_EXT,
+	WLR_GLES2_TEXTURE_DMABUF,
+};
+
 struct wlr_gles2_texture {
 	struct wlr_texture wlr_texture;
 	struct wlr_egl *egl;
+	enum wlr_gles2_texture_type type;
 
 	// Basically:
 	//   GL_TEXTURE_2D == mutable
 	//   GL_TEXTURE_EXTERNAL_OES == immutable
 	GLenum target;
+
 	GLuint tex;
+	GLuint image_tex;
+
+	union {
+		GLuint gl_tex;
+		struct wl_resource *wl_drm;
+	};
 
 	EGLImageKHR image;
 
@@ -87,6 +103,7 @@ struct wlr_gles2_texture {
 
 	// Only affects target == GL_TEXTURE_2D
 	enum wl_shm_format wl_format; // used to interpret upload data
+
 };
 
 const struct wlr_gles2_pixel_format *get_gles2_format_from_wl(
