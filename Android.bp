@@ -36,3 +36,16 @@ subdirs = [
 	"xcursor",
 	"xwayland/*", 
 ]
+
+cc_library_static {
+	name: "lib_wlr",
+	defaults: ["wlroots_defaults"],
+	whole_static_libs: ["wlr_types",
+		"wlr_backend",
+		"wl_protos",
+		"tinywl",
+		"wlr_xcursor",
+		"wlr_util",
+		"wlr_render",
+		],
+}
